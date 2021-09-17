@@ -1,0 +1,6 @@
+[submodule "ip/verilog-i2c"]
+	path = ip/verilog-i2c
+	url = https://github.com/feipenghhq/verilog-i2c.git
+[submodule "ip/verilog-misc-ip"]
+	path = ip/verilog-misc-ip
+	url = https://github.com/feipenghhq/verilog-misc-ip.git
