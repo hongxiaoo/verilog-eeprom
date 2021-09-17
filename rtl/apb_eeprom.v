@@ -62,14 +62,14 @@ module apb_eeprom #(
     wire        i2c_SCL_e;
     wire        i2c_SCL_o;
 
-    wire        i2c_cmd_fifo_push;
-    wire [9:0]  i2c_cmd_fifo_din;
+    reg         i2c_cmd_fifo_push;
+    reg  [9:0]  i2c_cmd_fifo_din;
     wire        i2c_cmd_fifo_full;
     wire        i2c_rxd_fifo_pop;
     wire [7:0]  i2c_rxd_fifo_dout;
     wire        i2c_rxd_fifo_empty;
     wire        i2c_rxd_cmp;
-    wire [3:0]  i2c_rxd_cnt;
+    wire [2:0]  i2c_rxd_cnt;
     wire        i2c_txd_cmp;
     wire        i2c_addr_noack_err;
     wire        i2c_data_noack_err;
@@ -109,7 +109,7 @@ module apb_eeprom #(
             .RXD_FIFO_DEPTH(4),
             .MAX_RXD_CNT(4)
         )
-        i2c_master_dut (
+        u_i2c_master (
             .clk (clk),
             .rst (rst),
             .cfg_clock_divider  (cfg_clock_divider),
@@ -137,21 +137,26 @@ module apb_eeprom #(
     ////////////////////////////////////////////
 
     assign start = psel & penable & pready;
-    assign wait_data_done = i2c_rxd_cmp;
+    assign wait_data_done = i2c_txd_cmp | i2c_rxd_cmp;
 
-    always @(posedge clk) begin
-        if (start) begin
+    always @(posedge clk)
+    begin
+        if (start)
+        begin
             pwrite_q <= pwrite;
             pwdata_q <= pwdata;
             paddr_q <= paddr;
         end
     end
 
-    always @(posedge clk) begin
-        if (start) begin
+    always @(posedge clk)
+    begin
+        if (start)
+        begin
             nak_err_q <= 1'b0;
         end
-        else if (i2c_addr_noack_err || i2c_data_noack_err) begin
+        else if (i2c_addr_noack_err || i2c_data_noack_err)
+        begin
             nak_err_q <= 1'b1;
         end
     end
@@ -216,14 +221,18 @@ module apb_eeprom #(
     assign addr_low = paddr_q[7:0];
     assign push_cmd_done = (cmd_cnt_q == 7);
 
-    always @(posedge clk) begin
-        if (rst) begin
+    always @(posedge clk)
+    begin
+        if (rst)
+        begin
             cmd_cnt_q <= 'b0;
         end
-        else if (push_cmd_done) begin
+        else if (push_cmd_done)
+        begin
             cmd_cnt_q <= 'b0;
         end
-        else if (state == PUSH_CMD) begin
+        else if (state == PUSH_CMD)
+        begin
             cmd_cnt_q <= cmd_cnt_q + 1'b1;
         end
     end
@@ -237,13 +246,13 @@ module apb_eeprom #(
             i2c_cmd_fifo_din = 0;
             case(cmd_cnt_q)
                 0:
-                    i2c_cmd_fifo_din = {1'b1, 1'b0, slv_addr, 0};        // control byte with start
+                    i2c_cmd_fifo_din = {1'b1, 1'b0, slv_addr, 1'b0};        // control byte with start
                 1:
                     i2c_cmd_fifo_din = {1'b0, 1'b0, addr_high};          // Address High Byte
                 2:
                     i2c_cmd_fifo_din = {1'b0, 1'b0, addr_low};           // Address Low Byte
                 3:
-                    i2c_cmd_fifo_din = {1'b1, 1'b0, slv_addr, 1};        // control byte with start - for read only
+                    i2c_cmd_fifo_din = {1'b1, 1'b0, slv_addr, 1'b1};        // control byte with start - for read only
                 4:
                     i2c_cmd_fifo_din = {1'b0, 1'b0, pwdata_q[31:24]};    // Data Byte 3 - MSB goest first
                 5:
@@ -260,6 +269,7 @@ module apb_eeprom #(
     // POP DATA
     ////////////////////////////////////////////
 
+    assign i2c_rxd_fifo_pop = (state == POP_DATA);
     assign pop_data_done = pop_cnt_q == 3;
 
     always @(posedge clk)
@@ -305,5 +315,7 @@ module apb_eeprom #(
     assign prdata = pop_data_q;
     assign pready = state == IDLE || state == CMP_DATA;
     assign pslverr = nak_err_q;
+
+
 
 endmodule
