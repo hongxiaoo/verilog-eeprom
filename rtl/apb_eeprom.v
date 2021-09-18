@@ -71,8 +71,8 @@ module apb_eeprom #(
     wire        i2c_rxd_cmp;
     wire [2:0]  i2c_rxd_cnt;
     wire        i2c_txd_cmp;
-    wire        i2c_addr_noack_err;
-    wire        i2c_data_noack_err;
+    wire        i2c_addr_nak;
+    wire        i2c_data_nak;
 
     reg [3:0]   state;
     reg [3:0]   state_next;
@@ -128,8 +128,8 @@ module apb_eeprom #(
             .i2c_SCL_i          (i2c_SCL_i),
             .i2c_SCL_e          (i2c_SCL_e),
             .i2c_SCL_o          (i2c_SCL_o),
-            .i2c_addr_noack_err (i2c_addr_noack_err),
-            .i2c_data_noack_err (i2c_data_noack_err)
+            .i2c_addr_nak       (i2c_addr_nak),
+            .i2c_data_nak       (i2c_data_nak)
         );
 
     ////////////////////////////////////////////
@@ -155,7 +155,7 @@ module apb_eeprom #(
         begin
             nak_err_q <= 1'b0;
         end
-        else if (i2c_addr_noack_err || i2c_data_noack_err)
+        else if (i2c_addr_nak || i2c_data_nak)
         begin
             nak_err_q <= 1'b1;
         end
@@ -248,19 +248,19 @@ module apb_eeprom #(
                 0:
                     i2c_cmd_fifo_din = {1'b1, 1'b0, slv_addr, 1'b0};        // control byte with start
                 1:
-                    i2c_cmd_fifo_din = {1'b0, 1'b0, addr_high};          // Address High Byte
+                    i2c_cmd_fifo_din = {1'b0, 1'b0, addr_high};             // Address High Byte
                 2:
-                    i2c_cmd_fifo_din = {1'b0, 1'b0, addr_low};           // Address Low Byte
+                    i2c_cmd_fifo_din = {1'b0, 1'b0, addr_low};              // Address Low Byte
                 3:
                     i2c_cmd_fifo_din = {1'b1, 1'b0, slv_addr, 1'b1};        // control byte with start - for read only
                 4:
-                    i2c_cmd_fifo_din = {1'b0, 1'b0, pwdata_q[31:24]};    // Data Byte 3 - MSB goest first
+                    i2c_cmd_fifo_din = {1'b0, 1'b0, pwdata_q[31:24]};       // Data Byte 3 - MSB goest first
                 5:
-                    i2c_cmd_fifo_din = {1'b0, 1'b0, pwdata_q[23:16]};    // Data Byte 2
+                    i2c_cmd_fifo_din = {1'b0, 1'b0, pwdata_q[23:16]};       // Data Byte 2
                 6:
-                    i2c_cmd_fifo_din = {1'b0, 1'b0, pwdata_q[15:8]};     // Data Byte 1
+                    i2c_cmd_fifo_din = {1'b0, 1'b0, pwdata_q[15:8]};        // Data Byte 1
                 7:
-                    i2c_cmd_fifo_din = {1'b0, 1'b1, pwdata_q[7:0]};      // Data Byte 0 with stop
+                    i2c_cmd_fifo_din = {1'b0, 1'b1, pwdata_q[7:0]};         // Data Byte 0 with stop
             endcase
         end
     end
@@ -315,7 +315,5 @@ module apb_eeprom #(
     assign prdata = pop_data_q;
     assign pready = state == IDLE || state == CMP_DATA;
     assign pslverr = nak_err_q;
-
-
 
 endmodule

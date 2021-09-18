@@ -61,5 +61,8 @@ class APB:
         await self._wait_ready()
         self.psel <= 0
         self.penable <= 0
-        rdata = int(self.prdata.value)
+        if not write:
+            rdata = int(self.prdata.value)
+        else:
+            rdata = 0
         return rdata

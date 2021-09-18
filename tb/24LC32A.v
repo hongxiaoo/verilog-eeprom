@@ -327,7 +327,7 @@ module M24LC32A (A0, A1, A2, WP, SDA, SCL, RESET);
             if (WrCycle | (START_Rcvd & (ShiftRegister[07:01] == {4'b1010,ChipAddress[02:00]}))) begin
                SDA_DO <= 0;
                SDA_OE <= 1;
-            end 
+            end
          end
          if (BitCounter == 9) begin
             BitCounter <= 0;
@@ -338,7 +338,7 @@ module M24LC32A (A0, A1, A2, WP, SDA, SCL, RESET);
             end
          end
       end
-   end 
+   end
 
 // -------------------------------------------------------------------------------------------------------
 //      1.09:  Acknowledge Detect
