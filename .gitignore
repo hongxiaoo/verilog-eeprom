@@ -2,3 +2,4 @@ __pycache__
 *.vcd
 results.xml
 sim_build
+output

@@ -148,7 +148,7 @@ module M24LC32A (A0, A1, A2, WP, SDA, SCL, RESET);
 // *******************************************************************************************************
 
    initial tAA = 900;                                   // SCL to SDA output delay
-   initial tWC = 500;                               // memory write cycle time. Hacked this to reduce simulation time. Original: 5000000
+   initial tWC = 500;                                   // memory write cycle time - Hacked to reduce simulation time.
 
    initial begin
       SDA_DO = 0;

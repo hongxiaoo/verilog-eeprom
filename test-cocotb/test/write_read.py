@@ -13,7 +13,7 @@ async def write(dut, iteration = 10):
 
 
 async def write_read(dut, iteration = 10):
-    tWC = 5000000 * 3
+    tWC = 500 * 3
     host = Host(dut)
     await host.start()
     for i in range(iteration):
@@ -21,10 +21,10 @@ async def write_read(dut, iteration = 10):
         await Timer(tWC, "ns")
         await host.read(addr)
 
-#@cocotb.test()
+@cocotb.test()
 async def write_test(dut):
-    await write(dut, 5)
+    await write(dut, 10)
 
 @cocotb.test()
 async def write_read_test(dut):
-    await write_read(dut, 1)
+    await write_read(dut, 10)

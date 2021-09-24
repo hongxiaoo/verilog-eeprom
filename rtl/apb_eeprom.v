@@ -45,7 +45,7 @@ module apb_eeprom #(
     // State Machine
     ////////////////////////////////////////////
 
-    parameter   IDLE = 0,
+    localparam  IDLE = 0,
                 PUSH_CMD = 1,
                 WAIT_DATA = 2,
                 POP_DATA = 3,
@@ -216,7 +216,7 @@ module apb_eeprom #(
     // PUSH CMD
     ////////////////////////////////////////////
 
-    assign slv_addr = SLV_ADDR;
+    assign slv_addr = SLV_ADDR[6:0];
     assign addr_high = {{(16-AWIDTH){1'b0}}, paddr_q[AWIDTH-1:8]};
     assign addr_low = paddr_q[7:0];
     assign push_cmd_done = (cmd_cnt_q == 7);
@@ -240,10 +240,10 @@ module apb_eeprom #(
     always @(*)
     begin
         i2c_cmd_fifo_push = 1'b0;
+        i2c_cmd_fifo_din = 0;
         if (state == PUSH_CMD)
         begin
             i2c_cmd_fifo_push = ~(pwrite_q & (cmd_cnt_q == 3));   // for write operation, don't push cmd 3
-            i2c_cmd_fifo_din = 0;
             case(cmd_cnt_q)
                 0:
                     i2c_cmd_fifo_din = {1'b1, 1'b0, slv_addr, 1'b0};        // control byte with start
@@ -261,6 +261,8 @@ module apb_eeprom #(
                     i2c_cmd_fifo_din = {1'b0, 1'b0, pwdata_q[15:8]};        // Data Byte 1
                 7:
                     i2c_cmd_fifo_din = {1'b0, 1'b1, pwdata_q[7:0]};         // Data Byte 0 with stop
+                default:
+                    i2c_cmd_fifo_din = {1'b1, 1'b0, slv_addr, 1'b0};
             endcase
         end
     end
